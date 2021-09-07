@@ -20,9 +20,9 @@ package frost.storage.perst.messages;
 
 import java.util.Iterator;
 
-import com.mcobject.perst.IPersistentList;
-import com.mcobject.perst.Persistent;
-import com.mcobject.perst.Storage;
+import org.garret.perst.IPersistentList;
+import org.garret.perst.Persistent;
+import org.garret.perst.Storage;
 
 public class PerstAttachments extends Persistent {
 

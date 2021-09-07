@@ -18,7 +18,7 @@
 */
 package frost.storage.perst.messages;
 
-import com.mcobject.perst.Persistent;
+import org.garret.perst.Persistent;
 
 /**
  * Holds all necessary data for a FrostMessageObject and allows to be stored in

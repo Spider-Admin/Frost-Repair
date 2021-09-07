@@ -18,10 +18,10 @@
 */
 package frost.storage.perst.messages;
 
-import com.mcobject.perst.IPersistentList;
-import com.mcobject.perst.Index;
-import com.mcobject.perst.Persistent;
-import com.mcobject.perst.Storage;
+import org.garret.perst.IPersistentList;
+import org.garret.perst.Index;
+import org.garret.perst.Persistent;
+import org.garret.perst.Storage;
 
 /**
  * Relation between a board name and a unique number for this board.

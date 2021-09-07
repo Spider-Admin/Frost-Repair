@@ -18,9 +18,9 @@
 */
 package frost.storage.perst.messagearchive;
 
-import com.mcobject.perst.Link;
-import com.mcobject.perst.Persistent;
-import com.mcobject.perst.Storage;
+import org.garret.perst.Link;
+import org.garret.perst.Persistent;
+import org.garret.perst.Storage;
 
 public class PerstFrostArchiveMessageObject extends Persistent {
 

@@ -18,7 +18,7 @@
 */
 package frost.storage.perst.messages;
 
-import com.mcobject.perst.Persistent;
+import org.garret.perst.Persistent;
 
 public class PerstFileAttachment extends Persistent {
 
