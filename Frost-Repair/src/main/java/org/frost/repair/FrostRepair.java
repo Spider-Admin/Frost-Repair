@@ -140,9 +140,13 @@ public class FrostRepair {
 					PerstString signature = signatures.get(oid);
 					PerstAttachments attachment = attachments.get(oid);
 
-					messageContentsNew.put(oid, PerstString.copy(messageContent));
-					publicKeysNew.put(oid, PerstString.copy(publicKey));
-					signaturesNew.put(oid, PerstString.copy(signature));
+					messageContentsNew.put(oid, new PerstString(messageContent));
+					if (publicKey != null) {
+						publicKeysNew.put(oid, new PerstString(publicKey));
+					}
+					if (signature != null) {
+						signaturesNew.put(oid, new PerstString(signature));
+					}
 					attachmentsNew.put(oid, new PerstAttachments(dbMessageContentsNew, attachment.getBoardAttachments(),
 							attachment.getFileAttachments()));
 
@@ -153,9 +157,11 @@ public class FrostRepair {
 					if (e.getErrorCode() == StorageError.DELETED_OBJECT) {
 						log.warn("Replace broken message (OID={}) with dummy", oid);
 
+						// Frost does not store missing publicKey/signature,
+						// because Perst can't store null-values!
 						messageContentsNew.put(oid, new PerstString(""));
-						publicKeysNew.put(oid, null);
-						signaturesNew.put(oid, null);
+						// publicKeysNew.put(oid, null);
+						// signaturesNew.put(oid, null);
 						attachmentsNew.put(oid, new PerstAttachments(dbMessageContentsNew, null, null));
 						dbMessageContentsNew.commit();
 					} else {
