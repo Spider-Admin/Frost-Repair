@@ -6,6 +6,12 @@ While importing the data, Spider crashed because there were some dangling refere
 
 Frost-Repair reads all messages and their content and copies them to a new dbs-file. If the content of a message can't be read, the content is replaced with an empty string. This allowed me to read all relevant dbs-files of my Frost to import keys for Spider.
 
+## Requirements
+
+- [Oracle JDK 8](https://www.oracle.com/java/technologies/downloads/#java8)
+- [Freenet](https://freenetproject.org/)
+- [Frost](http://jtcfrost.sourceforge.net/)
+
 ## Build
 
 1. Download the source code and extract it.

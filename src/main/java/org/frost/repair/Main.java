@@ -25,20 +25,6 @@ public class Main {
 
 	private static final Logger log = LoggerFactory.getLogger(Main.class);
 
-	private static Integer getJavaVersion() {
-		String version = System.getProperty("java.version");
-
-		if (version.startsWith("1.")) {
-			version = version.substring(2, 3);
-		} else {
-			int dot = version.indexOf(".");
-			if (dot != -1) {
-				version = version.substring(0, dot);
-			}
-		}
-		return Integer.parseInt(version);
-	}
-
 	public static void main(String[] args) {
 
 		// Ctrl+C from Gradle does not always call the ShutdownHook
@@ -52,19 +38,6 @@ public class Main {
 		});
 
 		try {
-			// Check java-version
-			// - org.garret.perst.* = old Perst
-			// - com.mcobject.perst.* = new Perst
-			//
-			// - Perst stores the names of used classes in dbs-files
-			// - Frost uses old Perst
-			// - Frost can only read dbs-files written with old Perst
-			// - OpenJDK with old Perst can't read the dbs-files from Frost
-			// - Java 8 with old Perst can read the dbs-files from Frost
-			if (getJavaVersion() > 8) {
-				log.warn("Repairing dbs-files does not work with Java version > 8!");
-			}
-
 			if (args.length >= 1) {
 				String frostPath = args[0];
 				FrostRepair frostRepair = new FrostRepair();
