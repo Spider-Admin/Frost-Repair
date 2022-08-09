@@ -179,5 +179,7 @@ public class FrostRepair {
 		dbMessages.close();
 		dbMessageContents.close();
 		dbMessageContentsNew.close();
+
+		log.info("Saved repaired dbs-file {}", newFilenameMessageContents);
 	}
 }
