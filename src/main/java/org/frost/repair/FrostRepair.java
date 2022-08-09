@@ -73,6 +73,10 @@ public class FrostRepair {
 	public void repair(String path) throws IOException {
 		log.info("Repair dbs-files ...");
 
+		if (!path.substring(path.length() - 1).equals(File.separator)) {
+			path = path + File.separator;
+		}
+
 		String tempDir = System.getProperty("java.io.tmpdir");
 
 		copyFileToTemp(path + STORE_PATH + File.separator + MESSAGE_FILE);
