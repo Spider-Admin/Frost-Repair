@@ -87,6 +87,18 @@ public class FrostRepair {
 		repairMessages(tempDir + MESSAGE_FILE, tempDir + MESSAGE_CONTENT_FILE, newFilenameMessageContents);
 	}
 
+	private Boolean isKnownError(Throwable e) {
+		if (e instanceof ClassCastException) {
+			return true;
+		} else if (e instanceof StorageError) {
+			Integer errorCode = ((StorageError) e).getErrorCode();
+			if (errorCode == StorageError.DELETED_OBJECT || errorCode == StorageError.INVALID_OID) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	private void repairMessages(String filenameMessages, String filenameMessageContents,
 			String newFilenameMessageContents) throws IOException {
 		log.info("Load messages from {} and {}", filenameMessages, filenameMessageContents);
@@ -137,40 +149,83 @@ public class FrostRepair {
 			while (messageIt.hasNext()) {
 				PerstFrostMessageObject message = messageIt.next();
 				int oid = message.getOid();
+				messageCount = messageCount + 1;
+
+				PerstString messageContent = null;
 				try {
-					messageCount = messageCount + 1;
-					PerstString messageContent = messageContents.get(oid);
-					PerstString publicKey = publicKeys.get(oid);
-					PerstString signature = signatures.get(oid);
-					PerstAttachments attachment = attachments.get(oid);
-
-					messageContentsNew.put(oid, new PerstString(messageContent));
-					if (publicKey != null) {
-						publicKeysNew.put(oid, new PerstString(publicKey));
-					}
-					if (signature != null) {
-						signaturesNew.put(oid, new PerstString(signature));
-					}
-					attachmentsNew.put(oid, new PerstAttachments(dbMessageContentsNew, attachment.getBoardAttachments(),
-							attachment.getFileAttachments()));
-
-					if (messageCount % 10000 == 0) {
-						dbMessageContentsNew.commit();
-					}
-				} catch (StorageError e) {
-					if (e.getErrorCode() == StorageError.DELETED_OBJECT) {
-						log.warn("Replace broken message (OID={}) with dummy", oid);
-
-						// Frost does not store missing publicKey/signature,
-						// because Perst can't store null-values!
-						messageContentsNew.put(oid, new PerstString(""));
-						// publicKeysNew.put(oid, null);
-						// signaturesNew.put(oid, null);
-						attachmentsNew.put(oid, new PerstAttachments(dbMessageContentsNew, null, null));
-						dbMessageContentsNew.commit();
+					messageContent = messageContents.get(oid);
+				} catch (ClassCastException | StorageError e) {
+					if (isKnownError(e)) {
+						log.warn("Remove broken message (OID={})", oid);
 					} else {
 						throw e;
 					}
+				}
+
+				PerstString publicKey = null;
+				try {
+					publicKey = publicKeys.get(oid);
+				} catch (ClassCastException | StorageError e) {
+					if (isKnownError(e)) {
+						log.warn("Remove broken public key of message (OID={})", oid);
+					} else {
+						throw e;
+					}
+				}
+
+				PerstString signature = null;
+				try {
+					signature = signatures.get(oid);
+				} catch (ClassCastException | StorageError e) {
+					if (isKnownError(e)) {
+						log.warn("Remove broken signature of message (OID={})", oid);
+					} else {
+						throw e;
+					}
+				}
+
+				PerstAttachments attachment = null;
+				try {
+					attachment = attachments.get(oid);
+				} catch (ClassCastException | StorageError e) {
+					if (isKnownError(e)) {
+						log.warn("Remove broken attachment of message (OID={})", oid);
+					} else {
+						throw e;
+					}
+				}
+
+				if (messageContent != null) {
+					messageContentsNew.put(oid, new PerstString(messageContent));
+				} else {
+					messageContentsNew.put(oid, new PerstString(""));
+				}
+
+				if (publicKey != null) {
+					publicKeysNew.put(oid, new PerstString(publicKey));
+				} else {
+					// Frost does not store missing publicKey,
+					// because Perst can't store null-values!
+					// publicKeysNew.put(oid, null);
+				}
+
+				if (signature != null) {
+					signaturesNew.put(oid, new PerstString(signature));
+				} else {
+					// Frost does not store missing signature,
+					// because Perst can't store null-values!
+					// signaturesNew.put(oid, null);
+				}
+
+				if (attachment != null) {
+					attachmentsNew.put(oid, new PerstAttachments(dbMessageContentsNew, attachment.getBoardAttachments(),
+							attachment.getFileAttachments()));
+				} else {
+					attachmentsNew.put(oid, new PerstAttachments(dbMessageContentsNew, null, null));
+				}
+
+				if (messageCount % 10000 == 0) {
+					dbMessageContentsNew.commit();
 				}
 			}
 		}
