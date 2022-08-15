@@ -25,6 +25,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Iterator;
 
+import org.garret.perst.IPersistentList;
 import org.garret.perst.Index;
 import org.garret.perst.Storage;
 import org.garret.perst.StorageError;
@@ -36,6 +37,8 @@ import frost.storage.perst.PerstString;
 import frost.storage.perst.messages.MessageContentStorageRoot;
 import frost.storage.perst.messages.MessageStorageRoot;
 import frost.storage.perst.messages.PerstAttachments;
+import frost.storage.perst.messages.PerstBoardAttachment;
+import frost.storage.perst.messages.PerstFileAttachment;
 import frost.storage.perst.messages.PerstFrostBoardObject;
 import frost.storage.perst.messages.PerstFrostMessageObject;
 
@@ -184,9 +187,14 @@ public class FrostRepair {
 					}
 				}
 
-				PerstAttachments attachment = null;
+				IPersistentList<PerstBoardAttachment> boardAttachment = null;
+				IPersistentList<PerstFileAttachment> fileAttachment = null;
 				try {
-					attachment = attachments.get(oid);
+					PerstAttachments attachment = attachments.get(oid);
+					if (attachment != null) {
+						boardAttachment = attachment.getBoardAttachments();
+						fileAttachment = attachment.getFileAttachments();
+					}
 				} catch (ClassCastException | StorageError e) {
 					if (isKnownError(e)) {
 						log.warn("Remove broken attachment of message (OID={})", oid);
@@ -217,9 +225,9 @@ public class FrostRepair {
 					// signaturesNew.put(oid, null);
 				}
 
-				if (attachment != null) {
-					attachmentsNew.put(oid, new PerstAttachments(dbMessageContentsNew, attachment.getBoardAttachments(),
-							attachment.getFileAttachments()));
+				if (boardAttachment != null && fileAttachment != null) {
+					attachmentsNew.put(oid,
+							new PerstAttachments(dbMessageContentsNew, boardAttachment, fileAttachment));
 				} else {
 					attachmentsNew.put(oid, new PerstAttachments(dbMessageContentsNew, null, null));
 				}
