@@ -102,6 +102,110 @@ public class FrostRepair {
 		return false;
 	}
 
+	private Integer repairMessagesFromList(MessageContentStorageRoot oldMessageContentRoot,
+			MessageContentStorageRoot newMessageContentRoot, Storage newMessageContentStorage,
+			Iterator<PerstFrostMessageObject> messageIt) {
+		Integer messageCount = 0;
+		Index<PerstString> messageContents = oldMessageContentRoot.getContentByMsgOid();
+		Index<PerstString> publicKeys = oldMessageContentRoot.getPublickeyByMsgOid();
+		Index<PerstString> signatures = oldMessageContentRoot.getSignatureByMsgOid();
+		Index<PerstAttachments> attachments = oldMessageContentRoot.getAttachmentsByMsgOid();
+
+		Index<PerstString> messageContentsNew = newMessageContentRoot.getContentByMsgOid();
+		Index<PerstString> publicKeysNew = newMessageContentRoot.getPublickeyByMsgOid();
+		Index<PerstString> signaturesNew = newMessageContentRoot.getSignatureByMsgOid();
+		Index<PerstAttachments> attachmentsNew = newMessageContentRoot.getAttachmentsByMsgOid();
+
+		while (messageIt.hasNext()) {
+			PerstFrostMessageObject message = messageIt.next();
+			int oid = message.getOid();
+			messageCount = messageCount + 1;
+
+			PerstString messageContent = null;
+			try {
+				messageContent = messageContents.get(oid);
+			} catch (ClassCastException | StorageError e) {
+				if (isKnownError(e)) {
+					log.warn("Remove broken message (OID={})", oid);
+				} else {
+					throw e;
+				}
+			}
+
+			PerstString publicKey = null;
+			try {
+				publicKey = publicKeys.get(oid);
+			} catch (ClassCastException | StorageError e) {
+				if (isKnownError(e)) {
+					log.warn("Remove broken public key of message (OID={})", oid);
+				} else {
+					throw e;
+				}
+			}
+
+			PerstString signature = null;
+			try {
+				signature = signatures.get(oid);
+			} catch (ClassCastException | StorageError e) {
+				if (isKnownError(e)) {
+					log.warn("Remove broken signature of message (OID={})", oid);
+				} else {
+					throw e;
+				}
+			}
+
+			IPersistentList<PerstBoardAttachment> boardAttachment = null;
+			IPersistentList<PerstFileAttachment> fileAttachment = null;
+			try {
+				PerstAttachments attachment = attachments.get(oid);
+				if (attachment != null) {
+					boardAttachment = attachment.getBoardAttachments();
+					fileAttachment = attachment.getFileAttachments();
+				}
+			} catch (ClassCastException | StorageError e) {
+				if (isKnownError(e)) {
+					log.warn("Remove broken attachment of message (OID={})", oid);
+				} else {
+					throw e;
+				}
+			}
+
+			if (messageContent != null) {
+				messageContentsNew.put(oid, new PerstString(messageContent));
+			} else {
+				messageContentsNew.put(oid, new PerstString(""));
+			}
+
+			if (publicKey != null) {
+				publicKeysNew.put(oid, new PerstString(publicKey));
+			} else {
+				// Frost does not store missing publicKey,
+				// because Perst can't store null-values!
+				// publicKeysNew.put(oid, null);
+			}
+
+			if (signature != null) {
+				signaturesNew.put(oid, new PerstString(signature));
+			} else {
+				// Frost does not store missing signature,
+				// because Perst can't store null-values!
+				// signaturesNew.put(oid, null);
+			}
+
+			if (boardAttachment != null && fileAttachment != null) {
+				attachmentsNew.put(oid,
+						new PerstAttachments(newMessageContentStorage, boardAttachment, fileAttachment));
+			} else {
+				attachmentsNew.put(oid, new PerstAttachments(newMessageContentStorage, null, null));
+			}
+
+			if (messageCount % 10000 == 0) {
+				newMessageContentStorage.commit();
+			}
+		}
+		return messageCount;
+	}
+
 	private void repairMessages(String filenameMessages, String filenameMessageContents,
 			String newFilenameMessageContents) throws IOException {
 		log.info("Load messages from {} and {}", filenameMessages, filenameMessageContents);
@@ -128,117 +232,40 @@ public class FrostRepair {
 			dbMessageContentsNew.commit();
 		}
 
-		Index<PerstString> messageContents = rootMessageContents.getContentByMsgOid();
-		Index<PerstString> publicKeys = rootMessageContents.getPublickeyByMsgOid();
-		Index<PerstString> signatures = rootMessageContents.getSignatureByMsgOid();
-		Index<PerstAttachments> attachments = rootMessageContents.getAttachmentsByMsgOid();
-
-		Index<PerstString> messageContentsNew = rootMessageContentsNew.getContentByMsgOid();
-		Index<PerstString> publicKeysNew = rootMessageContentsNew.getPublickeyByMsgOid();
-		Index<PerstString> signaturesNew = rootMessageContentsNew.getSignatureByMsgOid();
-		Index<PerstAttachments> attachmentsNew = rootMessageContentsNew.getAttachmentsByMsgOid();
-
 		Index<PerstFrostBoardObject> boards = rootMessages.getBoardsByName();
 		Iterator<PerstFrostBoardObject> boardIt = boards.iterator();
 
-		Integer messageCount = 0;
 		while (boardIt.hasNext()) {
 			PerstFrostBoardObject board = boardIt.next();
 			log.info("Copy message-contents from board {} ...", board.getBoardName());
 
-			Index<PerstFrostMessageObject> messages = board.getMessageIndex();
+			// @see frost.storage.perst.messages.MessageStorage.insertMessage(...)
+			// getMessageIndex() = All valid messages
+			// getUnreadMessageIndex() = Subset of getMessageIndex()
+			// getFlaggedMessageIndex() = Subset of getMessageIndex()
+			// getStarredMessageIndex() = Subset of getMessageIndex()
+			// getMessageIdIndex() = Subset of getMessageIndex()
+			// getInvalidMessagesIndex() = All invalid messages, never shown in GUI
+			// getSentMessagesList() = All sent messages, OID differs
 
-			Iterator<PerstFrostMessageObject> messageIt = messages.iterator();
-			while (messageIt.hasNext()) {
-				PerstFrostMessageObject message = messageIt.next();
-				int oid = message.getOid();
-				messageCount = messageCount + 1;
+			Integer messageCount = repairMessagesFromList(rootMessageContents, rootMessageContentsNew,
+					dbMessageContentsNew, board.getMessageIndex().iterator());
+			log.debug("getMessageIndex = {}", messageCount);
 
-				PerstString messageContent = null;
-				try {
-					messageContent = messageContents.get(oid);
-				} catch (ClassCastException | StorageError e) {
-					if (isKnownError(e)) {
-						log.warn("Remove broken message (OID={})", oid);
-					} else {
-						throw e;
-					}
-				}
+			messageCount = repairMessagesFromList(rootMessageContents, rootMessageContentsNew, dbMessageContentsNew,
+					board.getInvalidMessagesIndex().iterator());
+			log.debug("getInvalidMessagesIndex = {}", messageCount);
 
-				PerstString publicKey = null;
-				try {
-					publicKey = publicKeys.get(oid);
-				} catch (ClassCastException | StorageError e) {
-					if (isKnownError(e)) {
-						log.warn("Remove broken public key of message (OID={})", oid);
-					} else {
-						throw e;
-					}
-				}
+			messageCount = repairMessagesFromList(rootMessageContents, rootMessageContentsNew, dbMessageContentsNew,
+					board.getSentMessagesList().iterator());
+			log.debug("getSentMessagesList = {}", messageCount);
 
-				PerstString signature = null;
-				try {
-					signature = signatures.get(oid);
-				} catch (ClassCastException | StorageError e) {
-					if (isKnownError(e)) {
-						log.warn("Remove broken signature of message (OID={})", oid);
-					} else {
-						throw e;
-					}
-				}
+			// @see frost.storage.perst.messages.PerstFrostUnsentMessageObject
+			// getUnsentMessagesList() = All unsent messages, stored in MESSAGE_FILE
+			// getDraftMessagesList() = Not used in Frost, stored in MESSAGE_FILE
 
-				IPersistentList<PerstBoardAttachment> boardAttachment = null;
-				IPersistentList<PerstFileAttachment> fileAttachment = null;
-				try {
-					PerstAttachments attachment = attachments.get(oid);
-					if (attachment != null) {
-						boardAttachment = attachment.getBoardAttachments();
-						fileAttachment = attachment.getFileAttachments();
-					}
-				} catch (ClassCastException | StorageError e) {
-					if (isKnownError(e)) {
-						log.warn("Remove broken attachment of message (OID={})", oid);
-					} else {
-						throw e;
-					}
-				}
-
-				if (messageContent != null) {
-					messageContentsNew.put(oid, new PerstString(messageContent));
-				} else {
-					messageContentsNew.put(oid, new PerstString(""));
-				}
-
-				if (publicKey != null) {
-					publicKeysNew.put(oid, new PerstString(publicKey));
-				} else {
-					// Frost does not store missing publicKey,
-					// because Perst can't store null-values!
-					// publicKeysNew.put(oid, null);
-				}
-
-				if (signature != null) {
-					signaturesNew.put(oid, new PerstString(signature));
-				} else {
-					// Frost does not store missing signature,
-					// because Perst can't store null-values!
-					// signaturesNew.put(oid, null);
-				}
-
-				if (boardAttachment != null && fileAttachment != null) {
-					attachmentsNew.put(oid,
-							new PerstAttachments(dbMessageContentsNew, boardAttachment, fileAttachment));
-				} else {
-					attachmentsNew.put(oid, new PerstAttachments(dbMessageContentsNew, null, null));
-				}
-
-				if (messageCount % 10000 == 0) {
-					dbMessageContentsNew.commit();
-				}
-			}
+			dbMessageContentsNew.commit();
 		}
-		dbMessageContentsNew.commit();
-
 		dbMessages.close();
 		dbMessageContents.close();
 		dbMessageContentsNew.close();
