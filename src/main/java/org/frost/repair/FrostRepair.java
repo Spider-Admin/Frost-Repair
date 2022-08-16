@@ -25,6 +25,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Iterator;
 
+import org.garret.perst.AssertionFailed;
 import org.garret.perst.IPersistentList;
 import org.garret.perst.Index;
 import org.garret.perst.Storage;
@@ -93,6 +94,10 @@ public class FrostRepair {
 	private Boolean isKnownError(Throwable e) {
 		if (e instanceof ClassCastException) {
 			return true;
+		} else if (e instanceof AssertionFailed) {
+			return true;
+		} else if (e instanceof ArrayIndexOutOfBoundsException) {
+			return true;
 		} else if (e instanceof StorageError) {
 			Integer errorCode = ((StorageError) e).getErrorCode();
 			if (errorCode == StorageError.DELETED_OBJECT || errorCode == StorageError.INVALID_OID) {
@@ -124,7 +129,7 @@ public class FrostRepair {
 			PerstString messageContent = null;
 			try {
 				messageContent = messageContents.get(oid);
-			} catch (ClassCastException | StorageError e) {
+			} catch (ClassCastException | AssertionFailed | ArrayIndexOutOfBoundsException | StorageError e) {
 				if (isKnownError(e)) {
 					log.warn("Remove broken message (OID={})", oid);
 				} else {
@@ -135,7 +140,7 @@ public class FrostRepair {
 			PerstString publicKey = null;
 			try {
 				publicKey = publicKeys.get(oid);
-			} catch (ClassCastException | StorageError e) {
+			} catch (ClassCastException | AssertionFailed | ArrayIndexOutOfBoundsException | StorageError e) {
 				if (isKnownError(e)) {
 					log.warn("Remove broken public key of message (OID={})", oid);
 				} else {
@@ -146,7 +151,7 @@ public class FrostRepair {
 			PerstString signature = null;
 			try {
 				signature = signatures.get(oid);
-			} catch (ClassCastException | StorageError e) {
+			} catch (ClassCastException | AssertionFailed | ArrayIndexOutOfBoundsException | StorageError e) {
 				if (isKnownError(e)) {
 					log.warn("Remove broken signature of message (OID={})", oid);
 				} else {
@@ -162,7 +167,7 @@ public class FrostRepair {
 					boardAttachment = attachment.getBoardAttachments();
 					fileAttachment = attachment.getFileAttachments();
 				}
-			} catch (ClassCastException | StorageError e) {
+			} catch (ClassCastException | AssertionFailed | ArrayIndexOutOfBoundsException | StorageError e) {
 				if (isKnownError(e)) {
 					log.warn("Remove broken attachment of message (OID={})", oid);
 				} else {
