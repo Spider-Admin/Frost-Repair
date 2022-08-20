@@ -160,17 +160,47 @@ public class FrostRepair {
 				}
 			}
 
-			IPersistentList<PerstBoardAttachment> boardAttachment = null;
-			IPersistentList<PerstFileAttachment> fileAttachment = null;
+			IPersistentList<PerstBoardAttachment> boardAttachments = null;
+			IPersistentList<PerstFileAttachment> fileAttachments = null;
 			try {
 				PerstAttachments attachment = attachments.get(oid);
 				if (attachment != null) {
-					boardAttachment = attachment.getBoardAttachments();
-					fileAttachment = attachment.getFileAttachments();
+					try {
+						boardAttachments = attachment.getBoardAttachments();
+						if (boardAttachments != null) {
+							Iterator<PerstBoardAttachment> attachmentIt = boardAttachments.iterator();
+							while (attachmentIt.hasNext()) {
+								attachmentIt.next();
+							}
+						}
+					} catch (ClassCastException | AssertionFailed | ArrayIndexOutOfBoundsException | StorageError e) {
+						if (isKnownError(e)) {
+							boardAttachments = null;
+							log.warn("Remove broken board attachments of message (OID={})", oid);
+						} else {
+							throw e;
+						}
+					}
+					try {
+						fileAttachments = attachment.getFileAttachments();
+						if (fileAttachments != null) {
+							Iterator<PerstFileAttachment> attachmentIt = fileAttachments.iterator();
+							while (attachmentIt.hasNext()) {
+								attachmentIt.next();
+							}
+						}
+					} catch (ClassCastException | AssertionFailed | ArrayIndexOutOfBoundsException | StorageError e) {
+						if (isKnownError(e)) {
+							fileAttachments = null;
+							log.warn("Remove broken file attachments of message (OID={})", oid);
+						} else {
+							throw e;
+						}
+					}
 				}
 			} catch (ClassCastException | AssertionFailed | ArrayIndexOutOfBoundsException | StorageError e) {
 				if (isKnownError(e)) {
-					log.warn("Remove broken attachment of message (OID={})", oid);
+					log.warn("Remove broken attachments of message (OID={})", oid);
 				} else {
 					throw e;
 				}
@@ -198,12 +228,7 @@ public class FrostRepair {
 				// signaturesNew.put(oid, null);
 			}
 
-			if (boardAttachment != null && fileAttachment != null) {
-				attachmentsNew.put(oid,
-						new PerstAttachments(newMessageContentStorage, boardAttachment, fileAttachment));
-			} else {
-				attachmentsNew.put(oid, new PerstAttachments(newMessageContentStorage, null, null));
-			}
+			attachmentsNew.put(oid, new PerstAttachments(newMessageContentStorage, boardAttachments, fileAttachments));
 
 			if (messageCount % 10000 == 0) {
 				newMessageContentStorage.commit();
