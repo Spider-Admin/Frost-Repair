@@ -100,7 +100,8 @@ public class FrostRepair {
 			return true;
 		} else if (e instanceof StorageError) {
 			Integer errorCode = ((StorageError) e).getErrorCode();
-			if (errorCode == StorageError.DELETED_OBJECT || errorCode == StorageError.INVALID_OID) {
+			if (errorCode == StorageError.DELETED_OBJECT || errorCode == StorageError.INVALID_OID
+					|| errorCode == StorageError.FILE_ACCESS_ERROR) {
 				return true;
 			}
 		}
