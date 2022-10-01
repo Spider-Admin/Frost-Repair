@@ -1,6 +1,6 @@
-# Source code of Frost-Repair
+# Frost-Repair
 
-I was writing a FrostImporter for [Spider](https://github.com/Spider-Admin/Spider) to automatically import keys from Frost. Frost stores its data in dbs-files, which are object-oriented embedded databases, called [Perst](https://www.mcobject.com/perst/), made by McObject.
+I was writing a FrostImporter for [Spider](https://github.com/Spider-Admin/Spider) to automatically import keys from [Frost](https://jtcfrost.sourceforge.net/). Frost stores its data in dbs-files, which are object-oriented embedded databases, called [Perst](https://www.mcobject.com/perst/), made by McObject.
 
 While importing the data, Spider crashed because there were some dangling references in the dbs-files: messages.dbs stores the subject, the author and more metadata of a message, while messagesContents.dbs stores the message itself. I had several messages in messages.dbs, but no message in messagesContents.dbs. According to the subject these missing messages were all spam-messages, so I simply created empty new messages in messagesContents.dbs.
 
@@ -8,9 +8,9 @@ Frost-Repair reads all messages and their content and copies them to a new dbs-f
 
 ## Requirements
 
-- [Oracle JDK 8](https://www.oracle.com/java/technologies/downloads/#java8)
+- [Oracle Java Development Kit 8](https://www.oracle.com/java/technologies/downloads/#java8)
 - [Freenet](https://freenetproject.org/)
-- [Frost](http://jtcfrost.sourceforge.net/)
+- [Frost](https://jtcfrost.sourceforge.net/)
 
 ## Build
 
@@ -33,7 +33,7 @@ Frost: Spider-Admin@Z+d9Knmjd3hQeeZU6BOWPpAAxxs
 
 FMS: Spider-Admin
 
-Sone: [Spider-Admin](http://localhost:8888/Sone/viewSone.html?sone=msXvLpwmDqprlrYZ5ZRZyi7VUcWQ~Wisznv9JkQuSXY) [^1]
+Sone: [Spider-Admin](http://localhost:8888/Sone/viewSone.html?sone=msXvLpwmDqprlrYZ5ZRZyi7VUcWQ~Wisznv9JkQuSXY) [^2]
 
 I do not regularly read the email associated with GitHub.
 
@@ -41,6 +41,7 @@ I do not regularly read the email associated with GitHub.
 
 Frost-Repair by Spider-Admin@Z+d9Knmjd3hQeeZU6BOWPpAAxxs is licensed under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0).
 
-The package "frost" and its content was taken from [Frost](http://jtcfrost.sourceforge.net/). I slightly changed the code to reduce the dependencies to the other parts of Frost.
+The package "frost" and its content was taken from [Frost](https://jtcfrost.sourceforge.net/). I slightly changed the code to reduce the dependencies to the other parts of Frost.
 
-[^1]: Link requires a running Freenet node at http://localhost:8888/
+[^1]: Freemail requires a running Freenet node
+[^2]: Link requires a running Freenet node at http://localhost:8888/
