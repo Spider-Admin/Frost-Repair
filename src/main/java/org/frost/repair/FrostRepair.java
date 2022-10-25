@@ -15,7 +15,6 @@ package org.frost.repair;
   limitations under the License.
 */
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -56,14 +55,17 @@ public class FrostRepair {
 
 	private static final String PERST_ENCODING = "perst.string.encoding";
 
-	private void copyFileToTemp(String filename) throws IOException {
-		String tempDir = System.getProperty("java.io.tmpdir");
+	private String getTempDir() {
+		return System.getProperty("java.io.tmpdir");
+	}
 
-		Path source = Paths.get(filename);
-		Path destination = Paths.get(tempDir + source.getFileName());
+	private void copyFileToTemp(Path source) throws IOException {
+		String tempDir = getTempDir();
+
+		Path destination = Paths.get(tempDir, source.getFileName().toString());
 		destination.toFile().deleteOnExit();
 
-		log.info("Copy {} to temporary folder...", new File(filename).getName());
+		log.info("Copy {} to temporary folder...", source.getFileName());
 		Files.copy(source, destination, StandardCopyOption.REPLACE_EXISTING);
 	}
 
@@ -77,18 +79,13 @@ public class FrostRepair {
 	public void repair(String path) throws IOException {
 		log.info("Repair dbs-files ...");
 
-		if (!path.substring(path.length() - 1).equals(File.separator)) {
-			path = path + File.separator;
-		}
+		String tempDir = getTempDir();
 
-		String tempDir = System.getProperty("java.io.tmpdir");
+		copyFileToTemp(Paths.get(path, STORE_PATH, MESSAGE_FILE));
+		copyFileToTemp(Paths.get(path, STORE_PATH, MESSAGE_CONTENT_FILE));
 
-		copyFileToTemp(path + STORE_PATH + File.separator + MESSAGE_FILE);
-		copyFileToTemp(path + STORE_PATH + File.separator + MESSAGE_CONTENT_FILE);
-
-		String newFilenameMessageContents = path + STORE_PATH + File.separator + MESSAGE_CONTENT_FILE + ".repaired";
-
-		repairMessages(tempDir + MESSAGE_FILE, tempDir + MESSAGE_CONTENT_FILE, newFilenameMessageContents);
+		repairMessages(Paths.get(tempDir, MESSAGE_FILE), Paths.get(tempDir, MESSAGE_CONTENT_FILE),
+				Paths.get(path, STORE_PATH, MESSAGE_CONTENT_FILE + ".repaired"));
 	}
 
 	private Boolean isKnownError(Throwable e) {
@@ -237,25 +234,25 @@ public class FrostRepair {
 		return messageCount;
 	}
 
-	private void repairMessages(String filenameMessages, String filenameMessageContents,
-			String newFilenameMessageContents) throws IOException {
+	private void repairMessages(Path filenameMessages, Path filenameMessageContents, Path newFilenameMessageContents)
+			throws IOException {
 		log.info("Load messages from {} and {}", filenameMessages, filenameMessageContents);
 
-		Storage dbMessages = openStorage(filenameMessages);
+		Storage dbMessages = openStorage(filenameMessages.toString());
 		MessageStorageRoot rootMessages = (MessageStorageRoot) dbMessages.getRoot();
 		if (rootMessages == null) {
 			throw new IOException(String.format("\"%s\" contains no data!", filenameMessages));
 		}
 
-		Storage dbMessageContents = openStorage(filenameMessageContents);
+		Storage dbMessageContents = openStorage(filenameMessageContents.toString());
 		MessageContentStorageRoot rootMessageContents = (MessageContentStorageRoot) dbMessageContents.getRoot();
 		if (rootMessageContents == null) {
 			throw new IOException(String.format("\"%s\" contains no data!", filenameMessageContents));
 		}
 
 		log.info("Creating new dbs-file {}", newFilenameMessageContents);
-		Files.deleteIfExists(Paths.get(newFilenameMessageContents));
-		Storage dbMessageContentsNew = openStorage(newFilenameMessageContents);
+		Files.deleteIfExists(newFilenameMessageContents);
+		Storage dbMessageContentsNew = openStorage(newFilenameMessageContents.toString());
 		MessageContentStorageRoot rootMessageContentsNew = (MessageContentStorageRoot) dbMessageContentsNew.getRoot();
 		if (rootMessageContentsNew == null) {
 			rootMessageContentsNew = new MessageContentStorageRoot(dbMessageContentsNew);
