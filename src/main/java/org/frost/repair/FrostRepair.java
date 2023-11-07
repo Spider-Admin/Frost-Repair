@@ -1,6 +1,6 @@
 package org.frost.repair;
 /*
-  Copyright 2021 - 2022 Spider-Admin@Z+d9Knmjd3hQeeZU6BOWPpAAxxs
+  Copyright 2021 - 2023 Spider-Admin@Z+d9Knmjd3hQeeZU6BOWPpAAxxs
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -129,7 +129,7 @@ public class FrostRepair {
 				messageContent = messageContents.get(oid);
 			} catch (ClassCastException | AssertionFailed | ArrayIndexOutOfBoundsException | StorageError e) {
 				if (isKnownError(e)) {
-					log.warn("Remove broken message (OID={})", oid);
+					log.warn("Remove broken message (OID = {})", oid);
 				} else {
 					throw e;
 				}
@@ -140,7 +140,7 @@ public class FrostRepair {
 				publicKey = publicKeys.get(oid);
 			} catch (ClassCastException | AssertionFailed | ArrayIndexOutOfBoundsException | StorageError e) {
 				if (isKnownError(e)) {
-					log.warn("Remove broken public key of message (OID={})", oid);
+					log.warn("Remove broken public key of message (OID = {})", oid);
 				} else {
 					throw e;
 				}
@@ -151,7 +151,7 @@ public class FrostRepair {
 				signature = signatures.get(oid);
 			} catch (ClassCastException | AssertionFailed | ArrayIndexOutOfBoundsException | StorageError e) {
 				if (isKnownError(e)) {
-					log.warn("Remove broken signature of message (OID={})", oid);
+					log.warn("Remove broken signature of message (OID = {})", oid);
 				} else {
 					throw e;
 				}
@@ -173,7 +173,7 @@ public class FrostRepair {
 					} catch (ClassCastException | AssertionFailed | ArrayIndexOutOfBoundsException | StorageError e) {
 						if (isKnownError(e)) {
 							boardAttachments = null;
-							log.warn("Remove broken board attachments of message (OID={})", oid);
+							log.warn("Remove broken board attachments of message (OID = {})", oid);
 						} else {
 							throw e;
 						}
@@ -189,7 +189,7 @@ public class FrostRepair {
 					} catch (ClassCastException | AssertionFailed | ArrayIndexOutOfBoundsException | StorageError e) {
 						if (isKnownError(e)) {
 							fileAttachments = null;
-							log.warn("Remove broken file attachments of message (OID={})", oid);
+							log.warn("Remove broken file attachments of message (OID = {})", oid);
 						} else {
 							throw e;
 						}
@@ -197,7 +197,7 @@ public class FrostRepair {
 				}
 			} catch (ClassCastException | AssertionFailed | ArrayIndexOutOfBoundsException | StorageError e) {
 				if (isKnownError(e)) {
-					log.warn("Remove broken attachments of message (OID={})", oid);
+					log.warn("Remove broken attachments of message (OID = {})", oid);
 				} else {
 					throw e;
 				}
