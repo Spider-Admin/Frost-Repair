@@ -12,17 +12,7 @@ repositories {
 }
 
 tasks.withType(JavaCompile) {
-	// Frost-Repair requires Java 8
-	// - org.garret.perst.* = old Perst
-	// - com.mcobject.perst.* = new Perst (@see Spider)
-	//
-	// Perst stores the names of used classes in dbs-files.
-	// Frost can only read/write dbs-files written with old Perst.
-	// Old Perst works with Java = 8.
-	// New Perst works with Java >= 8. It can read both "versions" of Perst,
-	// but creates files as new Perst such that Frost is unable to read them.
-	targetCompatibility = "1.8"
-
+	options.release = 17
 	options.encoding = "UTF-8"
 }
 
@@ -31,8 +21,8 @@ application {
 }
 
 dependencies {
-	implementation("org.slf4j:slf4j-api:2.0.12")
-	implementation("ch.qos.logback:logback-core:1.3.14")
-	implementation("ch.qos.logback:logback-classic:1.3.14")
+	implementation("org.slf4j:slf4j-api:2.0.13")
+	implementation("ch.qos.logback:logback-core:1.5.6")
+	implementation("ch.qos.logback:logback-classic:1.5.6")
 	implementation("com.github.Spider-Admin:Perst:v4.40.0")
 }

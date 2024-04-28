@@ -8,7 +8,7 @@ Frost-Repair reads all messages and their content and copies them to a new dbs-f
 
 ## Requirements
 
-- [Oracle Java Development Kit 8](https://www.oracle.com/java/technologies/downloads/#java8)
+- [OpenJDK](https://openjdk.org/) 17 or newer.
 - [Freenet](https://freenetproject.org/)
 - [Frost](https://jtcfrost.sourceforge.net/)
 
