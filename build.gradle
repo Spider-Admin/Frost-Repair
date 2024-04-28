@@ -6,14 +6,8 @@ plugins {
 
 repositories {
 	mavenCentral()
-	ivy {
-		url "https://svn.code.sf.net"
-		patternLayout {
-			artifact "/p/[organisation]/code/frost/trunk/frost.core/src/main/zipResources/lib/[module]-jdk16-[revision].[ext]"
-		}
-		metadataSources {
-			artifact()
-		}
+	maven {
+		url "https://jitpack.io"
 	}
 }
 
@@ -40,5 +34,5 @@ dependencies {
 	implementation("org.slf4j:slf4j-api:2.0.12")
 	implementation("ch.qos.logback:logback-core:1.3.14")
 	implementation("ch.qos.logback:logback-classic:1.3.14")
-	implementation("jtcfrost:perst:421:jar")
+	implementation("com.github.Spider-Admin:Perst:v4.40.0")
 }
