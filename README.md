@@ -9,7 +9,7 @@ Frost-Repair reads all messages and their content and copies them to a new dbs-f
 ## Requirements
 
 - [OpenJDK](https://openjdk.org/) 17 or newer.
-- [Freenet](https://freenetproject.org/)
+- [Hyphanet](https://www.hyphanet.org/)
 - [Frost](https://jtcfrost.sourceforge.net/)
 
 ## Build
@@ -43,5 +43,5 @@ Frost-Repair by Spider-Admin@Z+d9Knmjd3hQeeZU6BOWPpAAxxs is licensed under the [
 
 The package "frost" and its content was taken from [Frost](https://jtcfrost.sourceforge.net/). I slightly changed the code to reduce the dependencies to the other parts of Frost.
 
-[^1]: Freemail requires a running Freenet node
-[^2]: Link requires a running Freenet node at http://localhost:8888/
+[^1]: Freemail requires a running Hyphanet node
+[^2]: Link requires a running Hyphanet node at http://localhost:8888/
