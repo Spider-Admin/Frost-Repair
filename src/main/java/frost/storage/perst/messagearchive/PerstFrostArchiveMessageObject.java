@@ -24,6 +24,8 @@ import org.garret.perst.Storage;
 
 public class PerstFrostArchiveMessageObject extends Persistent {
 
+	private static final long serialVersionUID = 1L;
+
 	private String messageId;
 	private String inReplyTo;
 

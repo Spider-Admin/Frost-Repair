@@ -28,6 +28,8 @@ import org.garret.perst.Storage;
  */
 public class PerstFrostBoardObject extends Persistent {
 
+	private static final long serialVersionUID = 1L;
+
 	private String boardName;
 	private int boardId;
 
